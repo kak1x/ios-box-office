@@ -13,6 +13,14 @@ class BoxOfficeCollectionViewCell: UICollectionViewCell {
     @IBOutlet private weak var titleLabel: UILabel!
     @IBOutlet private weak var audienceInfoLabel: UILabel!
     
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        
+        configureLabels()
+        self.layer.borderWidth = 2
+        self.layer.borderColor = UIColor.systemGray.cgColor
+    }
+    
     override func prepareForReuse() {
         super.prepareForReuse()
         
