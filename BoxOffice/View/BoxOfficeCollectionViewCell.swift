@@ -36,7 +36,7 @@ class BoxOfficeCollectionViewCell: UICollectionViewCell {
     
     private func configureLabels() {
         rankLabel.font = .preferredFont(forTextStyle: .largeTitle)
-        rankInfoLabel.font = .preferredFont(forTextStyle: .subheadline)
+        rankInfoLabel.font = .preferredFont(forTextStyle: .body)
         titleLabel.font = .preferredFont(forTextStyle: .title3)
         audienceInfoLabel.font = .preferredFont(forTextStyle: .body)
     }
