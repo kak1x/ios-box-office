@@ -1,6 +1,6 @@
 # 박스오피스 🎬
 
-> **소개: 영화진흥위원회 오픈 API, 카카오 이미지 검색 API를 사용하여 영화 정보를 조회할 수 있는 앱**
+> **소개: 영화진흥위원회 오픈 API(일별 박스오피스 조회), 카카오 이미지 검색 API(영화 포스터 이미지 검색)를 사용하여 영화 정보를 조회할 수 있는 앱**
 
 
 </br>
@@ -25,7 +25,7 @@
 
 ## 2. 타임라인
 ### 프로젝트 진행 기간
-**23.03.20 (월) ~ 23.03.31 (금)** 
+**박스오피스 : 23.03.20 (월) ~ 23.03.31 (금)** 
 
 | 날짜 | 타임라인 |
 | --- | --- |
@@ -39,6 +39,17 @@
 |23.03.29 (수)| URLRequest 요청으로 로직 변경, MovieInfoViewController / ScrollView / 포스터 이미지 및 영화 상세정보 fetch 기능 구현 |
 |23.03.30 (목)| 코드 컨벤션 수정, DataFormatter 타입 프로퍼티 사용으로 변경 |
 |23.03.31 (금)| 사용 API 변경 (네이버 영화 -> 카카오 이미지), MovieInfoViewController 오토레이아웃 수정, Activity Indicator 구현 |
+|23.04.05 (수)| 코드 컨벤션 수정, ViewController 기능 분리, NetworkManagerTest에 Mock을 활용한 행위 검증 테스트케이스 추가 |
+
+<br>
+
+**박스오피스2 : 23.04.03 (월) ~ 23.04.14 (금)**
+| 날짜 | 타임라인 |
+| --- | --- |
+|23.04.03 (월)| UICalendarView를 활용한 CalendarViewController 구현 |
+|23.04.04 (화)| CompositionalLayout을 이용해 새로운 CustomLayout 생성 및 이를 위한 BoxOfficeCollectionViewCell 구현 |
+|23.04.06 (목)| Step4에서 변경했던 사항들 Git Conflict 해결하여 박스오피스2 Step1, Step2에 Merge |
+|23.04.07 (금)| README 작성, Date extension 구현하여 어제 날짜 구현부 대체 |
 
 <br>
 
@@ -77,10 +88,12 @@ BoxOffice
     |    ├── Main
     |    ├── LaunchScreen
     |    ├── BoxOfficeCollectionViewListCell.xib
-    |    └── BoxOfficeCollectionViewListCell.swift
-    ├── Controller
+    |    ├── BoxOfficeCollectionViewListCell.swift
     |    ├── BoxOfficeViewController
     |    └── MovieInfoViewController
+    ├── Controller
+    |    ├── BoxOfficeDataLoader
+    |    └── MovieInfoDataLoader
     ├── Etc
     |    ├── AppDelegate
     |    ├── SceneDelegate
@@ -212,7 +225,8 @@ var errorDescription: String? {
     }
 }
 ```
-- `eerorDescription`의 타입을 String?이 아닌 String으로 구현해주어 발생한 문제였고 타입을 String?으로 변경해주니 정상적으로 작동하게 되었습니다.
+- `errorDescription: String?`과 `errorDescription: String`는 다른 프로퍼티이기 때문에 override가 제대로 되지 않아 발생한 문제였습니다.
+- `erorDescription`의 타입을 String?으로 변경해주니 정상적으로 작동하게 되었습니다.
 - LocalizedError 프로토콜이 Error를 상속받기 때문에 Result의 실패 타입이 Error여도 정의한 문자열이 잘 출력되는 것을 확인할 수 있었습니다.
 
 <br>
@@ -353,10 +367,11 @@ private func createListLayout() -> UICollectionViewCompositionalLayout {
 - 둘 중 특정 한가지 작업이 끝났을 때, Activity Indicator의 애니메이션을 종료시키는 것이 적절치 못하다고 생각했습니다.
 
 
-### ⚒️ 해결방법
+### ⚒️ 해결방법 1
 
 ``` swift
 fetchMovieInfo(completion: checkFetchComplete)
+fetchMoviePosterImage(completion: checkFetchComplete)
 ```
 
 ``` swift
@@ -400,10 +415,151 @@ private func checkFetchComplete() {
     }
 }
 ```
-- fetchMovieInfo, fetchMovieFoster 메서드를 통해 데이터를 모두 받았는지 확인하고
+- fetchMovieInfo, fetchMoviePoster 메서드를 통해 데이터를 모두 받았는지 확인하고
 - 2가지 작업이 모두 끝났을 때, Activity Indicator의 애니메이션을 중지시키고 화면에 이미지와 정보를 동시에 표시할 수 있도록 구현하였습니다.
 
+### ⚒️ 해결방법 2
+- 해결방법 1에서 checkFetchComplete라는 함수를 (박스오피스순위 조회, 영화 포스터 가져오기) 두 가지 작업의 컴플리션으로 사용하여 체크하는 방식을 사용했습니다.
+- 하지만 이 방법에서의 문제점이 오로지 체크를 하기위한 용도의 프로퍼티들을 뷰컨트롤러에서 가져야 한다는 것이고, 뷰 컨트롤러에서 이런 체크를 하는 로직을 따로 수행을 해야해서 뷰 컨트롤러에 기능이 집중되어 있다고 생각했습니다.
+
+``` swift
+// MovieInfoViewController.swift
+
+private func loadData() {
+    let group = DispatchGroup()
+
+    activityIndicator.startAnimating()
+    group.enter()
+    movieInfoDataLoader.loadMovieInfo(movieCode: movieCode) { result in
+        DispatchQueue.main.async { [weak self] in
+            switch result {
+            case .success(let data):
+                self?.configureLabels(data: data)
+                group.leave()
+            case .failure(let error):
+                self?.showFailAlert(error: error)
+                group.leave()
+            }
+        }
+    }
+    
+    group.notify(queue: .main) { [weak self] in
+            self?.showMovieInfo()
+    }
+}
+```
+- DispatchGroup을 활용해서 비동기적으로 발생하는 두 가지 작업을 `group.notify(queue:)` 메서드를 활용해 동시에 뷰에 나타날 수 있도록 수정해주었습니다.
+- 이렇게 수정한 결과 뷰 컨트롤러에서 서버와 통신을해 데이터를 받고, 받아온 데이터를 처리하고 다시 이미지를 로드하고 하는 일련의 과정들을 다른 타입에서 관리할 수 있게 되었습니다. 
+- 또, 뷰 컨트롤러에서는 데이터가 정상적으로 받아졌는지 확인하는 용도의 프로퍼티가 불필요하게 되었고 코드를 보았을 때 어떤 작업을 하는 것인지 알기가 조금 쉬워졌다고 생각합니다.
+- 따라서 `해결방법 2`를 채택하여 구현하였습니다.
+
+### 7️⃣ 뷰 컨트롤러의 데이터 관련 기능 추상화
+- `6️⃣의 해결방법 2`를 통해 뷰 컨트롤러의 기능 분리가 제대로 되지 못했다고 느꼈고, 더욱이 뷰 컨트롤러에서 데이터를 가져오는 역할까지 한다는 것도 뷰 컨트롤러에 너무 많은 기능이 집중되어 있다고 생각했습니다.
+
+### ⚒️ 해결방법
+
+``` swift
+// MovieInfoDataLoader.swift
+
+func loadMovieInfo(movieCode: String?, completion: @escaping (Result<Movie, Error>) -> ()) {
+guard let movieCode = movieCode else { return }
+
+let endPoint: BoxOfficeEndpoint = .fetchMovieInfo(movieCode: movieCode)
+
+networkManager.fetchData(request: endPoint.createRequest(), type: Movie.self) {
+    result in
+    switch result {
+    case .success(let data):
+        completion(.success(data))
+    case .failure(let error):
+        completion(.failure(error))
+    }
+}
+```
+- 뷰 컨트롤러에서 서버와 통신하고 데이터를 처리하는 기능을 새로운 타입으로 분리시켜 주었습니다.
+- 뷰 컨트롤러에서는 뷰를 업데이트를 하는 작업에 대한 코드만 클로져를 통해 넘겨주며, 작업이 끝나는지 체크하는 방법은 `6️⃣의 해결방법 2`를 사용하여 역할 분리를 해줄 수 있었습니다.
+
 <br>
+
+### 8️⃣ Mock을 활용한 Network Model Test
+- 아래의 코드는 미리 샘플 데이터를 MockURLSession에 준비해두고, fetchData() 메서드가 성공한다는 가정하에 fetchData 메서드의 컴플리션 핸들러로 내려오는 결과가 샘플 데이터와 일치하느냐를 검사하는 테스트입니다.
+
+``` swift
+func test_fetchData_호출시_BoxOffice_sample_data_불러오기에_성공한다() {
+    // given
+    let expectedResult = try? JSONDecoder().decode(BoxOffice.self, from: SampleData.boxOfficeData!)
+    let request = BoxOfficeEndpoint.fetchDailyBoxOffice(targetDate: "20120101").createRequest()
+
+    // when, then
+    sut.fetchData(request: request, type: BoxOffice.self) { result in
+        switch result {
+        case .success(let data):
+            XCTAssertEqual(expectedResult?.boxOfficeResult.type, data.boxOfficeResult.type)
+        case .failure:
+            XCTFail()
+        }
+    }
+}
+```
+- 위와 같은 형식의 테스트는 단순히 결과 값에 대한 상태를 검증하는 Stub 테스트라는 생각을 했고, Mock 객체를 사용하는 용도를 다시 생각해보았을 때 fetchData라는 행위를 검증하기 위해서는 fetchData의 호출로 인해 개발자가 설계한 행위들이 정상적으로 동작하는지를 검증해야한다고 생각했습니다.
+
+
+### ⚒️ 해결방법
+
+```swift
+class MockURLSession: URLSessionProtocol {
+    ...
+    var request: URLRequest!
+    var dataTaskCallCount = 0
+    
+    ...
+    
+    func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTaskProtocol {
+        self.request = request
+        self.dataTaskCallCount += 1
+        
+        ...
+    }
+}
+
+class MockURLSessionDataTask: URLSessionDataTaskProtocol {
+    ...
+    var resumeCallCount = 0
+    
+    func resume() {
+        self.resumeCallCount += 1
+        resumeDidCall?()
+    }
+}
+```
+- 위와 같이 `request`, `dataTaskCallCount`, `resumeCallCount`를 추가해 주었습니다.
+- 테스트하고자하는 타입은 NetworkManager로 주요 기능으로는 fetchData가 있고, fetchData가 하는 기능은 dataTask 메소드를 호출하고 dataTask를 resume 하는 일입니다. 
+- 따라서 새롭게 선언한 프로퍼티들을 활용해 MockURLSession 객체안에 request가 잘 전달이 되었는지, dataTask는 한번 호출된 것이 맞는지, resume() 메서드가 한번 호출된 것이 맞는지를 확인할 필요가 있다고 생각했습니다.
+
+```swift
+func test_fetchData_호출에_넘겨준_request와_session의_request가_동일하다() {
+    // given
+    let request = BoxOfficeEndpoint.fetchDailyBoxOffice(targetDate: "20120101").createRequest()
+    
+    // when
+    let session = MockURLSession()
+    sut = .init(session: session)
+    sut.fetchData(request: request, type: BoxOffice.self) { _ in return }
+    
+    // then
+    XCTAssertEqual(request, session.request)
+}
+
+func test_fetchData_호출시_session의_dataTask는_1번_호출된다() {
+    ...
+    XCTAssertEqual(1, session.dataTaskCallCount)
+}
+
+func test_fetchData_호출시_sessionDataTask의_resume이_1번_호출된다() {
+    ...
+    XCTAssertEqual(1, session.sessionDataTask.resumeCallCount)
+}
+```
 
 ## 6. 참고 링크
 - [Apple Docs - URLSession](https://developer.apple.com/documentation/foundation/urlsession)
@@ -412,3 +568,8 @@ private func checkFetchComplete() {
 - [Apple Docs - UICollectionViewCompositionalLayout](https://developer.apple.com/documentation/uikit/uicollectionviewcompositionallayout)
 - [Apple Docs - UICollectionLayoutListConfiguration](https://developer.apple.com/documentation/uikit/uicollectionlayoutlistconfiguration)
 - [WWDC2020 - Modern Cell Configuration](https://developer.apple.com/videos/play/wwdc2020/10027/)
+- [Realm - Swift의 강력한 mock 객체 만들기](https://academy.realm.io/kr/posts/making-mock-objects-more-useful-try-swift-2017/)
+---
+
+
+###### tags: `readme`
