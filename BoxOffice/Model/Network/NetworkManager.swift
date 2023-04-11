@@ -20,7 +20,7 @@ final class NetworkManager {
             return
         }
         request.cachePolicy = .returnCacheDataElseLoad
-        let cache = URLCacheManager.getCache(type: type)
+        let cache = URLCacheManager.getURLCache(type: type)
         if let data = cache.cachedResponse(for: request)?.data {
             completion(self.decode(data: data, type: type))
         } else {

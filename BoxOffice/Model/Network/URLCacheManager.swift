@@ -11,7 +11,7 @@ class URLCacheManager {
     private static let inMemoryCache = URLCache(memoryCapacity: 4 * 1024 * 1024, diskCapacity: 0)
     private static let onDiskCache = URLCache(memoryCapacity: 0, diskCapacity: 20 * 1024 * 1024)
     
-    static func getCache<T: Decodable>(type: T.Type) -> URLCache {
+    static func getURLCache<T: Decodable>(type: T.Type) -> URLCache {
         if type == BoxOffice.self {
             return onDiskCache
         } else {
