@@ -20,6 +20,7 @@
 		1639532A29D179EF00032636 /* Array+Subscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639532929D179EF00032636 /* Array+Subscript.swift */; };
 		1639532E29D1BE6800032636 /* String+DecimalFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639532D29D1BE6800032636 /* String+DecimalFormatter.swift */; };
 		163AD2BF29E3F0CC00DE0B89 /* UICollectionView+Animate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163AD2BE29E3F0CC00DE0B89 /* UICollectionView+Animate.swift */; };
+		163AD2C129E5795100DE0B89 /* URLCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163AD2C029E5795100DE0B89 /* URLCacheManager.swift */; };
 		1658230F29DD0ED4006A570A /* BoxOfficeDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1658230E29DD0ED4006A570A /* BoxOfficeDataLoader.swift */; };
 		1680878929DFB3CB000DBFB1 /* Date+previousDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1680878829DFB3CB000DBFB1 /* Date+previousDate.swift */; };
 		1680878B29E00982000DBFB1 /* Configurable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1680878A29E00982000DBFB1 /* Configurable.swift */; };
@@ -94,6 +95,7 @@
 		1639532929D179EF00032636 /* Array+Subscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Subscript.swift"; sourceTree = "<group>"; };
 		1639532D29D1BE6800032636 /* String+DecimalFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+DecimalFormatter.swift"; sourceTree = "<group>"; };
 		163AD2BE29E3F0CC00DE0B89 /* UICollectionView+Animate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UICollectionView+Animate.swift"; sourceTree = "<group>"; };
+		163AD2C029E5795100DE0B89 /* URLCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLCacheManager.swift; sourceTree = "<group>"; };
 		1658230E29DD0ED4006A570A /* BoxOfficeDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxOfficeDataLoader.swift; sourceTree = "<group>"; };
 		1680878829DFB3CB000DBFB1 /* Date+previousDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+previousDate.swift"; sourceTree = "<group>"; };
 		1680878A29E00982000DBFB1 /* Configurable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configurable.swift; sourceTree = "<group>"; };
@@ -279,8 +281,8 @@
 				4A03E4B829D1CFF70066AF87 /* DateFormmatter+HyphenFormat.swift */,
 				4A51039529D7063900DB9887 /* UIViewController+AlertController.swift */,
 				1680878829DFB3CB000DBFB1 /* Date+previousDate.swift */,
-				1680878A29E00982000DBFB1 /* Configurable.swift */,
 				163AD2BE29E3F0CC00DE0B89 /* UICollectionView+Animate.swift */,
+				1680878A29E00982000DBFB1 /* Configurable.swift */,
 			);
 			path = Etc;
 			sourceTree = "<group>";
@@ -313,6 +315,7 @@
 				16B6214E29CAE13C00D6BA27 /* BoxOfficeEndpoint.swift */,
 				16B6215029CC21C900D6BA27 /* URLSessionProtocol.swift */,
 				4A32B3AC29CC36A8005A8575 /* URLSessionDataTaskProtocol.swift */,
+				163AD2C029E5795100DE0B89 /* URLCacheManager.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -552,6 +555,7 @@
 				1631BC4829D3DC3800C2943D /* MovieInfoViewController.swift in Sources */,
 				16E737DB29CD8378009B5DE8 /* Identifying.swift in Sources */,
 				4A03E4B929D1CFF70066AF87 /* DateFormmatter+HyphenFormat.swift in Sources */,
+				163AD2C129E5795100DE0B89 /* URLCacheManager.swift in Sources */,
 				1639531A29D1731D00032636 /* MovieInfoResult.swift in Sources */,
 				4A7F488B29D3D79100D164BE /* MoviePoster.swift in Sources */,
 				4A51039A29DAAD2E00DB9887 /* CalendarViewController.swift in Sources */,

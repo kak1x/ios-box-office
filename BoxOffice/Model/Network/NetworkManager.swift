@@ -9,7 +9,6 @@ import Foundation
 
 final class NetworkManager {
     private let session: URLSessionProtocol
-    private let cache = URLCache.shared
     
     init(session: URLSessionProtocol = URLSession.shared) {
         self.session = session
@@ -21,7 +20,7 @@ final class NetworkManager {
             return
         }
         request.cachePolicy = .returnCacheDataElseLoad
-        
+        let cache = URLCacheManager.getCache(type: type)
         if let data = cache.cachedResponse(for: request)?.data {
             completion(self.decode(data: data, type: type))
         } else {
@@ -29,8 +28,12 @@ final class NetworkManager {
                 guard let self = self else { return }
                 
                 self.checkError(with: data, response, error) { result in
+                    guard let response = response else { return }
+                    
                     switch result {
                     case .success(let data):
+                        let cachedData = CachedURLResponse(response: response, data: data)
+                        cache.storeCachedResponse(cachedData, for: request)
                         completion(self.decode(data: data, type: type))
                     case .failure(let error):
                         completion(.failure(error))
