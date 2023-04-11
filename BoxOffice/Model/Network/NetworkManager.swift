@@ -9,29 +9,35 @@ import Foundation
 
 final class NetworkManager {
     private let session: URLSessionProtocol
+    private let cache = URLCache.shared
     
     init(session: URLSessionProtocol = URLSession.shared) {
         self.session = session
     }
     
     func fetchData<T: Decodable>(request: URLRequest?, type: T.Type, completion: @escaping (Result<T, Error>) -> Void) {
-        guard let request = request else {
+        guard var request = request else {
             completion(.failure(NetworkError.urlError))
             return
         }
+        request.cachePolicy = .returnCacheDataElseLoad
         
-        session.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
-            
-            self.checkError(with: data, response, error) { result in
-                switch result {
-                case .success(let data):
-                    completion(self.decode(data: data, type: type))
-                case .failure(let error):
-                    completion(.failure(error))
+        if let data = cache.cachedResponse(for: request)?.data {
+            completion(self.decode(data: data, type: type))
+        } else {
+            session.dataTask(with: request) { [weak self] data, response, error in
+                guard let self = self else { return }
+                
+                self.checkError(with: data, response, error) { result in
+                    switch result {
+                    case .success(let data):
+                        completion(self.decode(data: data, type: type))
+                    case .failure(let error):
+                        completion(.failure(error))
+                    }
                 }
-            }
-        }.resume()
+            }.resume()
+        }
     }
     
     private func checkError(with data: Data?, _ response: URLResponse?, _ error: Error?, completion: @escaping (Result<Data, Error>) -> Void) {
