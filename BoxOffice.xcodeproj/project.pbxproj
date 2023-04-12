@@ -24,6 +24,7 @@
 		1658230F29DD0ED4006A570A /* BoxOfficeDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1658230E29DD0ED4006A570A /* BoxOfficeDataLoader.swift */; };
 		1680878929DFB3CB000DBFB1 /* Date+previousDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1680878829DFB3CB000DBFB1 /* Date+previousDate.swift */; };
 		1680878B29E00982000DBFB1 /* Configurable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1680878A29E00982000DBFB1 /* Configurable.swift */; };
+		16B35BC329E6C85700A54D44 /* ImageCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16B35BC229E6C85700A54D44 /* ImageCacheManager.swift */; };
 		16B6214F29CAE13C00D6BA27 /* BoxOfficeEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16B6214E29CAE13C00D6BA27 /* BoxOfficeEndpoint.swift */; };
 		16B6215129CC21C900D6BA27 /* URLSessionProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16B6215029CC21C900D6BA27 /* URLSessionProtocol.swift */; };
 		16B6215929CC239300D6BA27 /* NetworkManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16B6215829CC239300D6BA27 /* NetworkManagerTests.swift */; };
@@ -99,6 +100,7 @@
 		1658230E29DD0ED4006A570A /* BoxOfficeDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxOfficeDataLoader.swift; sourceTree = "<group>"; };
 		1680878829DFB3CB000DBFB1 /* Date+previousDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+previousDate.swift"; sourceTree = "<group>"; };
 		1680878A29E00982000DBFB1 /* Configurable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configurable.swift; sourceTree = "<group>"; };
+		16B35BC229E6C85700A54D44 /* ImageCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManager.swift; sourceTree = "<group>"; };
 		16B6214E29CAE13C00D6BA27 /* BoxOfficeEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxOfficeEndpoint.swift; sourceTree = "<group>"; };
 		16B6215029CC21C900D6BA27 /* URLSessionProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionProtocol.swift; sourceTree = "<group>"; };
 		16B6215629CC239300D6BA27 /* NetworkManagerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NetworkManagerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -316,6 +318,7 @@
 				16B6215029CC21C900D6BA27 /* URLSessionProtocol.swift */,
 				4A32B3AC29CC36A8005A8575 /* URLSessionDataTaskProtocol.swift */,
 				163AD2C029E5795100DE0B89 /* URLCacheManager.swift */,
+				16B35BC229E6C85700A54D44 /* ImageCacheManager.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -552,6 +555,7 @@
 				1639531C29D1733800032636 /* MovieInfo.swift in Sources */,
 				4A32B3A729CC2B81005A8575 /* MockURLSession.swift in Sources */,
 				16B6216329CC296A00D6BA27 /* SampleData.swift in Sources */,
+				16B35BC329E6C85700A54D44 /* ImageCacheManager.swift in Sources */,
 				1631BC4829D3DC3800C2943D /* MovieInfoViewController.swift in Sources */,
 				16E737DB29CD8378009B5DE8 /* Identifying.swift in Sources */,
 				4A03E4B929D1CFF70066AF87 /* DateFormmatter+HyphenFormat.swift in Sources */,

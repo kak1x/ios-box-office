@@ -37,8 +37,8 @@ final class MovieInfoDataLoader {
             [weak self] result in
             switch result {
             case .success(let data):
-                let url = self?.searchPosterURL(data: data)
-                self?.loadImage(url: url) { image in
+                let urlText = self?.searchPosterURL(data: data)
+                self?.loadImage(urlText: urlText) { image in
                     completion(.success(image))
                 }
             case .failure(let error):
@@ -47,29 +47,34 @@ final class MovieInfoDataLoader {
         }
     }
     
-    private func searchPosterURL(data: MoviePoster) -> URL? {
+    private func searchPosterURL(data: MoviePoster) -> String? {
         guard let firstItem = data.items.first else { return nil }
         
         let urlText = firstItem.imageURLText
         
-        return URL(string: urlText)
+        return urlText
     }
     
-    private func loadImage(url: URL?, completion: @escaping (UIImage?) -> ()) {
-        guard let url = url else { return }
+    private func loadImage(urlText: String?, completion: @escaping (UIImage?) -> ()) {
+        guard let urlText = urlText, let url = URL(string: urlText) else { return }
         
         DispatchQueue.global(qos: .background).async {
-            guard let data = try? Data(contentsOf: url) else {
-                completion(nil)
-                return
-            }
+            let cachedKey = NSString(string: urlText)
             
-            guard let image = UIImage(data: data) else {
-                completion(nil)
-                return
-            }
-            
-            DispatchQueue.main.async {
+            if let cachedImage = ImageCacheManager.shared.object(forKey: cachedKey) {
+                completion(cachedImage)
+            } else {
+                guard let data = try? Data(contentsOf: url) else {
+                    completion(nil)
+                    return
+                }
+                
+                guard let image = UIImage(data: data) else {
+                    completion(nil)
+                    return
+                }
+                
+                ImageCacheManager.shared.setObject(image, forKey: cachedKey)
                 completion(image)
             }
         }
