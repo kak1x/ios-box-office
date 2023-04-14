@@ -10,24 +10,34 @@ import UIKit
 fileprivate enum LayoutMode {
     case list
     case icon
+    
+    var actionTitle: String {
+        switch self {
+        case .list:
+            return "아이콘"
+        case .icon:
+            return "리스트"
+        }
+    }
+    
+    mutating func toggle() {
+        switch self {
+        case .list:
+            self = .icon
+        case .icon:
+            self = .list
+        }
+    }
 }
 
 final class BoxOfficeViewController: UIViewController {
-    @IBOutlet private weak var listCollectionView: UICollectionView!
-    @IBOutlet private weak var iconCollectionView: UICollectionView!
+    @IBOutlet private weak var collectionView: UICollectionView!
     
     private let boxOfficeDataLoader = BoxOfficeDataLoader()
+    private let alertFactory: AlertImplementation = AlertImplementation()
     private var boxOffice: BoxOffice?
     private var selectedDate = Date().previousDate()
     private var layoutMode: LayoutMode = .list
-    private var currenCollectionView: UICollectionView {
-        switch layoutMode {
-        case .list:
-            return listCollectionView
-        case .icon:
-            return iconCollectionView
-        }
-    }
     
     private lazy var activityIndicator: UIActivityIndicatorView = {
         let activityIndicator = UIActivityIndicatorView()
@@ -42,74 +52,6 @@ final class BoxOfficeViewController: UIViewController {
         
         configureInitialView()
         loadInitialData()
-    }
-    
-    @objc private func refreshData() {
-        loadData { [weak self] in
-            self?.currenCollectionView.refreshControl?.endRefreshing()
-        }
-    }
-    
-    private func configureRefreshControl() {
-        self.listCollectionView.refreshControl = UIRefreshControl()
-        self.listCollectionView.refreshControl?.addTarget(self, action: #selector(refreshData), for: .valueChanged)
-        self.iconCollectionView.refreshControl = UIRefreshControl()
-        self.iconCollectionView.refreshControl?.addTarget(self, action: #selector(refreshData), for: .valueChanged)
-    }
-    
-    private func loadInitialData() {
-        activityIndicator.startAnimating()
-        
-        loadData { [weak self] in
-            self?.activityIndicator.stopAnimating()
-        }
-    }
-    
-    private func loadData(completion: @escaping () -> ()) {
-        boxOfficeDataLoader.loadDailyBoxOffice(date: selectedDate) { result in
-            DispatchQueue.main.async { [weak self] in
-                switch result {
-                case .success(let data):
-                    self?.boxOffice = data
-                    self?.currenCollectionView.reloadData()
-                    completion()
-                case .failure(let error):
-                    self?.showFailAlert(error: error)
-                    completion()
-                }
-            }
-        }
-    }
-    
-    private func registerXib() {
-        let listCellNib = UINib(nibName: BoxOfficeCollectionViewListCell.identifier, bundle: nil)
-                listCollectionView.register(listCellNib, forCellWithReuseIdentifier: BoxOfficeCollectionViewListCell.identifier)
-        
-        let iconCellNib = UINib(nibName: BoxOfficeCollectionViewCell.identifier, bundle: nil)
-                iconCollectionView.register(iconCellNib, forCellWithReuseIdentifier: BoxOfficeCollectionViewCell.identifier)
-    }
-    
-    private func configureCollectionView() {
-        listCollectionView.dataSource = self
-        listCollectionView.delegate = self
-        iconCollectionView.dataSource = self
-        iconCollectionView.delegate = self
-        iconCollectionView.isHidden = true
-        
-        configureRefreshControl()
-        configureCollectionViewLayout()
-        registerXib()
-    }
-    
-    private func configureInitialView() {
-        navigationItem.title = DateFormatter.hyphenText(date: selectedDate)
-        self.view.addSubview(activityIndicator)
-        configureCollectionView()
-    }
-    
-    private func configureCollectionViewLayout() {
-        listCollectionView.collectionViewLayout = createListLayout()
-        iconCollectionView.collectionViewLayout = createIconLayout()
     }
     
     @IBAction private func chooseDateButtonTapped(_ sender: UIBarButtonItem) {
@@ -127,22 +69,95 @@ final class BoxOfficeViewController: UIViewController {
     }
     
     @IBAction private func switchLayoutModeTapped() {
-        switch layoutMode {
-        case .list:
-            self.showIconModeSheet { [weak self] _ in
-                self?.layoutMode = .icon
-                self?.listCollectionView.fadeOut()
-                self?.iconCollectionView.fadeIn()
-                self?.iconCollectionView.reloadData()
-            }
-        case .icon:
-            self.showListModeSheet { [weak self] _ in
-                self?.layoutMode = .list
-                self?.iconCollectionView.fadeOut()
-                self?.listCollectionView.fadeIn()
-                self?.listCollectionView.reloadData()
+        let alertData = AlertViewData(title: "화면모드 변경",
+                                      message: nil,
+                                      style: .actionSheet,
+                                      enableOkAction: true,
+                                      okActionTitle: layoutMode.actionTitle,
+                                      okActionStyle: .default,
+                                      enableCancelAction: true,
+                                      completion: changeLayout)
+        let actionSheet = alertFactory.makeAlert(alertData: alertData)
+        
+        present(actionSheet, animated: true)
+    }
+    
+    @objc private func refreshData() {
+        loadData { [weak self] in
+            self?.collectionView.refreshControl?.endRefreshing()
+        }
+    }
+    
+    private func configureRefreshControl() {
+        self.collectionView.refreshControl = UIRefreshControl()
+        self.collectionView.refreshControl?.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+    }
+    
+    private func loadInitialData() {
+        activityIndicator.startAnimating()
+        
+        loadData { [weak self] in
+            self?.activityIndicator.stopAnimating()
+        }
+    }
+    
+    private func loadData(completion: @escaping () -> ()) {
+        boxOfficeDataLoader.loadDailyBoxOffice(date: selectedDate) { result in
+            DispatchQueue.main.async { [weak self] in
+                switch result {
+                case .success(let data):
+                    self?.boxOffice = data
+                    self?.collectionView.reloadData()
+                    completion()
+                case .failure(let error):
+                    self?.showFetchFailAlert(error: error)
+                    completion()
+                }
             }
         }
+    }
+    
+    private func registerXib() {
+        let listCellNib = UINib(nibName: BoxOfficeCollectionViewListCell.identifier, bundle: nil)
+        collectionView.register(listCellNib, forCellWithReuseIdentifier: BoxOfficeCollectionViewListCell.identifier)
+        
+        let iconCellNib = UINib(nibName: BoxOfficeCollectionViewCell.identifier, bundle: nil)
+        collectionView.register(iconCellNib, forCellWithReuseIdentifier: BoxOfficeCollectionViewCell.identifier)
+    }
+    
+    private func configureCollectionView() {
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        
+        configureRefreshControl()
+        configureCollectionViewLayout()
+        registerXib()
+    }
+    
+    private func configureInitialView() {
+        navigationItem.title = DateFormatter.hyphenText(date: selectedDate)
+        self.view.addSubview(activityIndicator)
+        configureCollectionView()
+    }
+    
+    private func configureCollectionViewLayout() {
+        switch layoutMode {
+        case .list:
+            collectionView.collectionViewLayout = createListLayout()
+        case .icon:
+            collectionView.collectionViewLayout = createIconLayout()
+        }
+    }
+    
+    private func showFetchFailAlert(error: Error) {
+        let alertData = AlertViewData(title: "Error",
+                                      message: "데이터 로딩 실패 \n \(error.localizedDescription)",
+                                      style: .alert,
+                                      enableOkAction: true,
+                                      okActionStyle: .default)
+        let alert = alertFactory.makeAlert(alertData: alertData)
+        
+        present(alert, animated: true)
     }
 }
 
@@ -154,14 +169,15 @@ extension BoxOfficeViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if collectionView == self.listCollectionView {
-            return configureCell(listCollectionView, type: BoxOfficeCollectionViewListCell.self, indexPath: indexPath)
-        } else {
-            return configureCell(iconCollectionView, type: BoxOfficeCollectionViewCell.self, indexPath: indexPath)
+        switch layoutMode {
+        case .list:
+            return configureCell(type: BoxOfficeCollectionViewListCell.self, indexPath: indexPath)
+        case .icon:
+            return configureCell(type: BoxOfficeCollectionViewCell.self, indexPath: indexPath)
         }
     }
     
-    private func configureCell<T: Configurable>(_ collectionView: UICollectionView, type: T.Type, indexPath: IndexPath) -> UICollectionViewCell {
+    private func configureCell<T: CellConfigurable>(type: T.Type, indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: T.identifier,
             for: indexPath) as? T,
@@ -218,5 +234,15 @@ extension BoxOfficeViewController {
         let layout = UICollectionViewCompositionalLayout(section: section)
         
         return layout
+    }
+}
+
+// MARK: - Actionsheet Handler
+extension BoxOfficeViewController {
+    func changeLayout() {
+        layoutMode.toggle()
+        configureCollectionViewLayout()
+        collectionView.reloadData()
+        collectionView.fadeIn()
     }
 }
